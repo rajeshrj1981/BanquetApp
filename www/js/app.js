@@ -1,5 +1,5 @@
 // Ionic Starter App
-var fb = new Firebase("https://portfolio-manger.firebaseio.com/");
+var fb = new Firebase("https://banquetapp.firebaseio.com/");
 // angular.module is a global place for creating, registering and retrieving Angular modules
 // 'starter' is the name of this angular module example (also set in a <body> attribute in index.html)
 // the 2nd parameter is an array of 'requires'
@@ -70,49 +70,57 @@ imageApp.controller("FirebaseController", function($scope, $state, $firebaseAuth
 
 });
 
-imageApp.controller("SecureController", function($scope, $ionicHistory, $firebaseArray, $cordovaCamera) {
+imageApp.controller("SecureController", function($scope, $ionicHistory, $firebaseArray, $cordovaCamera,$state,$firebaseObject) {
 
     $ionicHistory.clearHistory();
     $scope.images = [];
-$scope.userData = {};
+	$scope.userData = {};
     var fbAuth = fb.getAuth();
     if(fbAuth) {
         var userReference = fb.child("users/" + fbAuth.uid);
         var syncArray = $firebaseArray(userReference.child("images"));
+		var userData = userReference.child("userData");
+		var userDetails = $firebaseObject(userReference.child('userData'));
         $scope.images = syncArray;
+		$scope.userData = userDetails;
     } else {
         $state.go("firebase");
     }
 	$scope.save = function(){
-		//var selectedImage = $firebaseArray(userReference.child("images/"));
-		alert("saved");
-	}
-    $scope.upload = function(language) {
-        var options = {
-            quality : 75,
-            destinationType : Camera.DestinationType.DATA_URL,
-            sourceType : Camera.PictureSourceType.CAMERA,
-            allowEdit : true,
-            encodingType: Camera.EncodingType.JPEG,
-            popoverOptions: CameraPopoverOptions,
-            targetWidth: 500,
-            targetHeight: 500,
-            saveToPhotoAlbum: false
-        };
-        $cordovaCamera.getPicture(options).then(function(imageData) {
-            syncArray.$add({image: imageData,
+            userData.set({
 			language:$scope.userData.language,
-			mealPref:$scope.userData.meal,
+			mealPref:$scope.userData.mealPref,
 			age:$scope.userData.age,
 			allergies:$scope.userData.allergies,
 			winePair:$scope.userData.winePair,
 			physician:$scope.userData.physician,
-			}).then(function() {
-                alert("Banquet Card Details has been uploaded");
-            });
-        }, function(error) {
-            console.error(error);
-        });
+			});
+			alert("User Details successfully updated");
+	}
+    $scope.upload = function(language) {
+		if(syncArray.length >= 2) {
+			alert("Already two photos available");
+		} else {
+			var options = {
+				quality : 75,
+				destinationType : Camera.DestinationType.DATA_URL,
+				sourceType : Camera.PictureSourceType.CAMERA,
+				allowEdit : true,
+				encodingType: Camera.EncodingType.JPEG,
+				popoverOptions: CameraPopoverOptions,
+				targetWidth: 500,
+				targetHeight: 500,
+				saveToPhotoAlbum: false
+			};
+			$cordovaCamera.getPicture(options).then(function(imageData) {
+				syncArray.$add({image: imageData
+				}).then(function() {
+					alert("Banquet Card photo has been uploaded");
+				});
+			}, function(error) {
+				console.error(error);
+			});
+		}
     }
 
 
