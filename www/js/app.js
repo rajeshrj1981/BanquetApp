@@ -86,6 +86,11 @@ imageApp.controller("SecureController", function($scope, $ionicHistory, $firebas
     } else {
         $state.go("firebase");
     }
+
+	$scope.logOut = function() {
+      $state.go("firebase");
+    }
+	
 	$scope.save = function(){
             userData.set({
 			language:$scope.userData.language,
